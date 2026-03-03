@@ -1,6 +1,6 @@
 services:
   # =========================================================================
-  # Laravel Application (PHP-FPM + Nginx)
+  # Laravel Application (PHP-FPM + Nginx interno)
   # =========================================================================
   app:
     build:
@@ -8,13 +8,12 @@ services:
       dockerfile: Dockerfile
     container_name: prietoeats-app
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-8080}:80"
+    # Importante: No exponemos puertos 8080:80 hacia afuera para que solo el proxy entre
     environment:
       APP_NAME: PrietoEats
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: "http://localhost:${APP_PORT:-8080}"
+      APP_URL: "https://prietoEats.alonso.servidorgp.somosdelprieto.com"
       APP_KEY: "${APP_KEY}"
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -27,6 +26,13 @@ services:
       QUEUE_CONNECTION: database
       FILESYSTEM_DISK: public
       LOG_CHANNEL: stderr
+
+      # --- CONFIGURACIÓN PARA EL PROXY INVERSO Y SSL ---
+      VIRTUAL_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
+      LETSENCRYPT_EMAIL: tuemail@ejemplo.com # Cambia esto por tu correo real
+
     volumes:
       - app-storage:/var/www/html/storage/app/public
     depends_on:
@@ -34,6 +40,7 @@ services:
         condition: service_healthy
     networks:
       - prietoeats
+      - proxy # Conexión a la red externa del nginx-proxy
 
   # =========================================================================
   # MySQL Database
@@ -47,46 +54,31 @@ services:
       MYSQL_DATABASE: "${DB_DATABASE:-prietoeats}"
       MYSQL_USER: "${DB_USERNAME:-prietoeats}"
       MYSQL_PASSWORD: "${DB_PASSWORD:-secret}"
+    # Mantenemos el puerto 3307 solo si necesitas entrar desde fuera con Workbench/DBeaver
     ports:
       - "${DB_PORT:-3307}:3306"
     volumes:
       - db-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootsecret}"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p\"$$MYSQL_ROOT_PASSWORD\" 2>/dev/null || exit 1"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     networks:
       - prietoeats
 
-  # =========================================================================
-  # phpMyAdmin (optional, for development)
-  # =========================================================================
-  phpmyadmin:
-    image: phpmyadmin:5
-    container_name: prietoeats-pma
-    restart: unless-stopped
-    ports:
-      - "${PMA_PORT:-8081}:80"
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-rootsecret}"
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - prietoeats
-    profiles:
-      - dev
+# =========================================================================
+# Definición de Redes y Volúmenes
+# =========================================================================
+networks:
+  prietoeats:
+    driver: bridge
+  proxy:
+    external: true # Indica que esta red ya fue creada por tu otro docker-compose
 
 volumes:
   db-data:
     driver: local
   app-storage:
     driver: local
-
-networks:
-  prietoeats:
-    driver: bridge
