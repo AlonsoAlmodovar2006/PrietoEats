@@ -1,5 +1,6 @@
 services:
-  # 1. El motor de PHP (Tu código Laravel)
+  # 1. La aplicación completa (PHP-FPM + Nginx + Supervisor)
+  #    El Dockerfile construye una imagen todo-en-uno que sirve en puerto 80.
   app:
     build:
       context: .
@@ -25,36 +26,22 @@ services:
       FILESYSTEM_DISK: public
       LOG_CHANNEL: stderr
 
+      # --- CONFIGURACIÓN PARA EL PROXY INVERSO Y SSL ---
+      VIRTUAL_HOST: prietoeats.alonso.servidorgp.somosdelprieto.com
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: prietoeats.alonso.servidorgp.somosdelprieto.com
+      LETSENCRYPT_EMAIL: tuemail@ejemplo.com
     volumes:
-      - ./:/var/www/html
+      # Solo persistimos las subidas de usuarios, NO montamos ./ (destruiría vendor/ y public/build/)
       - app-storage:/var/www/html/storage/app/public
     depends_on:
       db:
         condition: service_healthy
     networks:
       - prietoeats
-
-  # 2. El servidor web que conecta con el Proxy Externo
-  web:
-    image: nginx:alpine
-    container_name: prietoeats-web
-    restart: unless-stopped
-    environment:
-      # Las variables VIRTUAL para el proxy de jwilder se ponen AQUÍ
-      VIRTUAL_HOST: prietoeats.alonso.servidorgp.somosdelprieto.com
-      VIRTUAL_PORT: 80
-      LETSENCRYPT_HOST: prietoeats.alonso.servidorgp.somosdelprieto.com
-      LETSENCRYPT_EMAIL: tuemail@ejemplo.com
-    volumes:
-      - ./:/var/www/html
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      - prietoeats
       - proxy
-    depends_on:
-      - app
 
-  # 3. La Base de Datos
+  # 2. La Base de Datos
   db:
     image: mysql:8.0
     container_name: prietoeats-db
