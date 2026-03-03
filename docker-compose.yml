@@ -1,0 +1,92 @@
+services:
+  # =========================================================================
+  # Laravel Application (PHP-FPM + Nginx)
+  # =========================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prietoeats-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      APP_NAME: PrietoEats
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: "http://localhost:${APP_PORT:-8080}"
+      APP_KEY: "${APP_KEY}"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-prietoeats}"
+      DB_USERNAME: "${DB_USERNAME:-prietoeats}"
+      DB_PASSWORD: "${DB_PASSWORD:-secret}"
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      FILESYSTEM_DISK: public
+      LOG_CHANNEL: stderr
+    volumes:
+      - app-storage:/var/www/html/storage/app/public
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - prietoeats
+
+  # =========================================================================
+  # MySQL Database
+  # =========================================================================
+  db:
+    image: mysql:8.0
+    container_name: prietoeats-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-rootsecret}"
+      MYSQL_DATABASE: "${DB_DATABASE:-prietoeats}"
+      MYSQL_USER: "${DB_USERNAME:-prietoeats}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-secret}"
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootsecret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - prietoeats
+
+  # =========================================================================
+  # phpMyAdmin (optional, for development)
+  # =========================================================================
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: prietoeats-pma
+    restart: unless-stopped
+    ports:
+      - "${PMA_PORT:-8081}:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-rootsecret}"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - prietoeats
+    profiles:
+      - dev
+
+volumes:
+  db-data:
+    driver: local
+  app-storage:
+    driver: local
+
+networks:
+  prietoeats:
+    driver: bridge
