@@ -1,0 +1,28 @@
+/* 1. Estilo para el botón ACTIVO (Verde con texto blanco) */
+.nav-pills .nav-link.active.bg-success {
+    background-color: #198754 !important;
+    /* El verde éxito estándar, cámbialo si quieres otro tono */
+    color: #ffffff !important;
+    box-shadow: 0 4px 6px rgba(25, 135, 84, 0.2);
+    /* Sombra suave para darle profundidad */
+}
+
+/* 2. Estilo para el botón INACTIVO (Blanco con texto verde) */
+.nav-link.bg-white.text-success {
+    background-color: #ffffff !important;
+    color: #198754 !important;
+    border: 1px solid #198754;
+    /* Añadimos borde para que no se pierda en el fondo */
+}
+
+/* 3. Efecto Hover (Al pasar el ratón) */
+.nav-link.text-success:hover:not(.active) {
+    background-color: #e9f7ef !important;
+    /* Un verde muy clarito para el feedback */
+    color: #146c43 !important;
+}
+
+/* 4. Quitar el borde azul de enfoque de Bootstrap */
+.nav-link:focus {
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+}
