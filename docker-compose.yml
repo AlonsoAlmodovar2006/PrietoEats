@@ -1,14 +1,12 @@
 services:
-  # =========================================================================
-  # Laravel Application (PHP-FPM + Nginx interno)
-  # =========================================================================
+  # 1. El motor de PHP (Tu código Laravel)
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: prietoeats-app
     restart: unless-stopped
-    # Importante: No exponemos puertos 8080:80 hacia afuera para que solo el proxy entre
+    working_dir: /var/www/html
     environment:
       APP_NAME: PrietoEats
       APP_ENV: production
@@ -26,25 +24,37 @@ services:
       QUEUE_CONNECTION: database
       FILESYSTEM_DISK: public
       LOG_CHANNEL: stderr
-
-      # --- CONFIGURACIÓN PARA EL PROXY INVERSO Y SSL ---
-      VIRTUAL_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
-      VIRTUAL_PORT: 80
-      LETSENCRYPT_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
-      LETSENCRYPT_EMAIL: tuemail@ejemplo.com # Cambia esto por tu correo real
-
     volumes:
+      - ./:/var/www/html
       - app-storage:/var/www/html/storage/app/public
     depends_on:
       db:
         condition: service_healthy
     networks:
       - prietoeats
-      - proxy # Conexión a la red externa del nginx-proxy
+      - proxy
 
-  # =========================================================================
-  # MySQL Database
-  # =========================================================================
+  # 2. El servidor web que conecta con el Proxy Externo
+  web:
+    image: nginx:alpine
+    container_name: prietoeats-web
+    restart: unless-stopped
+    environment:
+      # Las variables VIRTUAL para el proxy de jwilder se ponen AQUÍ
+      VIRTUAL_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
+      LETSENCRYPT_EMAIL: tuemail@ejemplo.com
+    volumes:
+      - ./:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - prietoeats
+      - proxy
+    depends_on:
+      - app
+
+  # 3. La Base de Datos
   db:
     image: mysql:8.0
     container_name: prietoeats-db
@@ -54,7 +64,6 @@ services:
       MYSQL_DATABASE: "${DB_DATABASE:-prietoeats}"
       MYSQL_USER: "${DB_USERNAME:-prietoeats}"
       MYSQL_PASSWORD: "${DB_PASSWORD:-secret}"
-    # Mantenemos el puerto 3307 solo si necesitas entrar desde fuera con Workbench/DBeaver
     ports:
       - "${DB_PORT:-3307}:3306"
     volumes:
@@ -68,17 +77,13 @@ services:
     networks:
       - prietoeats
 
-# =========================================================================
-# Definición de Redes y Volúmenes
-# =========================================================================
+# Redes y Volúmenes
 networks:
   prietoeats:
     driver: bridge
   proxy:
-    external: true # Indica que esta red ya fue creada por tu otro docker-compose
+    external: true
 
 volumes:
   db-data:
-    driver: local
   app-storage:
-    driver: local
