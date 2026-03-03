@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\auth\admin;
+namespace App\Http\Controllers\Auth\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Exception;
-
-use function Laravel\Prompts\error;
 
 class ProductController extends Controller
 {
@@ -43,7 +41,7 @@ class ProductController extends Controller
             $product->name = $request->input('name');
             $product->save();
         } catch (Exception $e) {
-            error("El producto no se puede registrar" . $e);
+            return redirect()->back()->with('error', 'El producto no se puede registrar: ' . $e->getMessage());
         }
         return redirect()->route('admin.products.index')->with('success', 'Producto creado');
     }
@@ -61,7 +59,7 @@ class ProductController extends Controller
             $product = Product::findOrFail($id);
             $product->update($validated);
         } catch (Exception $e) {
-            error("El producto no se puede registrar" . $e);
+            return redirect()->back()->with('error', 'El producto no se puede actualizar: ' . $e->getMessage());
         }
         return redirect()->route('admin.products.index')->with('success', 'Producto editado');
     }
