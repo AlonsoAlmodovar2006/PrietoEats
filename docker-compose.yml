@@ -13,7 +13,7 @@ services:
       APP_NAME: PrietoEats
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: "https://prietoEats.alonso.servidorgp.somosdelprieto.com"
+      APP_URL: "https://prietoeats.alonso.servidorgp.somosdelprieto.com"
       APP_KEY: "${APP_KEY}"
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -28,9 +28,9 @@ services:
       LOG_CHANNEL: stderr
 
       # --- CONFIGURACIÓN PARA EL PROXY INVERSO Y SSL ---
-      VIRTUAL_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
+      VIRTUAL_HOST: prietoeats.alonso.servidorgp.somosdelprieto.com
       VIRTUAL_PORT: 80
-      LETSENCRYPT_HOST: prietoEats.alonso.servidorgp.somosdelprieto.com
+      LETSENCRYPT_HOST: prietoeats.alonso.servidorgp.somosdelprieto.com
       LETSENCRYPT_EMAIL: tuemail@ejemplo.com # Cambia esto por tu correo real
 
     volumes:
