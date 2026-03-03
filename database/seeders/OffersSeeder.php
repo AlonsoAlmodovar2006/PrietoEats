@@ -11,7 +11,7 @@ class OffersSeeder extends Seeder
     public function run(): void
     {
         Offer::create([
-            'date_delivery' => Carbon::parse('2026-02-25'),
+            'date_delivery' => Carbon::now()->addDays(7),
             'time_delivery' => '13:35-14:30',
         ]);
     }
