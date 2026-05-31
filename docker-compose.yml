@@ -29,6 +29,7 @@ services:
       # --- CONFIGURACIÓN PARA EL PROXY INVERSO ---
       VIRTUAL_HOST: prietoeats-alonso.servidorgp.somosdelprieto.com
       VIRTUAL_PORT: 80
+      HTTPS_METHOD: nohttps
     volumes:
       # Solo persistimos las subidas de usuarios, NO montamos ./ (destruiría vendor/ y public/build/)
       - app-storage:/var/www/html/storage/app/public
