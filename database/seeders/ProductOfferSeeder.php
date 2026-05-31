@@ -9,19 +9,19 @@ class ProductOfferSeeder extends Seeder
 {
     public function run(): void
     {
-        ProductOffer::create([
+        ProductOffer::firstOrCreate([
             'offer_id' => 1,
-            'product_id' => 1
+            'product_id' => 1,
         ]);
 
-        ProductOffer::create([
+        ProductOffer::firstOrCreate([
             'offer_id' => 1,
-            'product_id' => 2
+            'product_id' => 2,
         ]);
 
-        ProductOffer::create([
+        ProductOffer::firstOrCreate([
             'offer_id' => 1,
-            'product_id' => 3
+            'product_id' => 3,
         ]);
     }
 }
