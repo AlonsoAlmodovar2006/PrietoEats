@@ -22,8 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (config('app.env') === 'production' && env('APP_FORCE_HTTPS', false)) {
-            URL::forceScheme('https');
+        if (config('app.env') === 'production') {
+            URL::forceRootUrl(config('app.url'));
+
+            if (env('APP_FORCE_HTTPS', false)) {
+                URL::forceScheme('https');
+            } else {
+                URL::forceScheme('http');
+            }
         }
 
         Blade::if('admin', function () {
