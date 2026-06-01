@@ -36,9 +36,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - prietoeats
-      - proxy
+    # networks:
+    #   - prietoeats
+    #   - proxy
 
   # 2. La Base de Datos
   db:
@@ -60,15 +60,15 @@ services:
       timeout: 10s
       retries: 10
       start_period: 60s
-    networks:
-      - prietoeats
+    # networks:
+    #   - prietoeats
 
 # Redes y Volúmenes
-networks:
-  prietoeats:
-    driver: bridge
-  proxy:
-    external: true
+# networks:
+#   prietoeats:
+#     driver: bridge
+#   proxy:
+#     external: true
 
 volumes:
   db-data:
